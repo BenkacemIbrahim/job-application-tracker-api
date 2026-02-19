@@ -1,55 +1,66 @@
-# Job Application Tracker API
+# CareerPilot API
 
-Production-ready Spring Boot 3 REST API for tracking job applications with JWT authentication, role-based access, and PostgreSQL persistence.
+A production-ready Spring Boot 3 backend for tracking job applications with JWT authentication, role-based access control, PostgreSQL persistence, and Dockerized deployment.
 
-## Features
+> Repository technical name: `job-application-tracker-api`
 
-- JWT authentication (`/api/auth/register`, `/api/auth/login`)
-- Role-based authorization (`USER`, `ADMIN`)
-- Job management endpoints:
-  - `GET /api/jobs` (pagination, filtering, sorting)
+## Why This Project
+
+CareerPilot API demonstrates practical backend engineering patterns used in real production services:
+
+- Clean layered architecture
+- Secure stateless authentication (JWT + BCrypt)
+- Role-based and ownership-based authorization
+- Query-driven business analytics endpoint
+- Strong automated test coverage
+- Container-first deployment workflow
+
+## Core Features
+
+- Auth endpoints:
+  - `POST /api/auth/register`
+  - `POST /api/auth/login`
+- Job Application CRUD:
+  - `GET /api/jobs`
   - `POST /api/jobs`
   - `PUT /api/jobs/{id}`
   - `DELETE /api/jobs/{id}`
-- Ownership enforcement:
-  - `USER` can access only own jobs
-  - `ADMIN` can access all jobs
-- Aggregation stats endpoint:
+- Job analytics:
   - `GET /api/jobs/stats`
-- Global exception handling
-- Flyway database migrations for production bootstrap
-- OpenAPI/Swagger support
-- Dockerized app + PostgreSQL stack
+- Pagination, filtering by status, sorting by applied date
+- User ownership restrictions and admin-level global access
+- Unified API error model via global exception handler
+- OpenAPI + Swagger UI
+- Flyway-based production schema migrations
 
 ## Tech Stack
 
 - Java 17
 - Spring Boot 3.3.x
-- Spring Security (JWT)
+- Spring Security
 - Spring Data JPA / Hibernate
-- Flyway
 - PostgreSQL
+- Flyway
 - Maven
 - Docker / Docker Compose
-- JUnit 5, MockMvc, Mockito, JaCoCo
+- JUnit 5, Mockito, MockMvc, JaCoCo
 
-## Architecture Diagram
+## Architecture
 
 ```mermaid
-flowchart TD
-    Client[Client / Frontend] --> Security[JWT Filter + SecurityConfig]
+flowchart LR
+    Client[Client] --> Security[JWT Filter + Security Chain]
     Security --> Controller[Controllers]
     Controller --> Service[Service Layer]
     Service --> Mapper[Manual Mapper]
-    Service --> Repository[Spring Data Repositories]
-    Repository --> DB[(PostgreSQL)]
-    Flyway[Flyway Migrations] --> DB
-
-    Service --> Exception[GlobalExceptionHandler]
-    Controller --> Exception
+    Service --> Repository[Repositories]
+    Repository --> Postgres[(PostgreSQL)]
+    Flyway[Flyway Migration] --> Postgres
 ```
 
-## Package Structure
+Detailed architecture documentation: `docs/ARCHITECTURE.md`
+
+## Project Structure
 
 ```text
 com.ibrahim.jobtracker
@@ -65,158 +76,114 @@ com.ibrahim.jobtracker
 `- util
 ```
 
-## Environment Variables
+## Quick Start
 
-Copy `.env.example` to `.env` and update values.
-
-| Variable | Description | Default |
-|---|---|---|
-| `APP_PORT` | Host port mapped to API container | `8080` |
-| `SERVER_PORT` | Internal Spring Boot server port | `8080` |
-| `POSTGRES_PORT` | Host PostgreSQL port | `5432` |
-| `POSTGRES_DB` | PostgreSQL DB name | `jobtracker` |
-| `POSTGRES_USER` | PostgreSQL user | `jobtracker` |
-| `POSTGRES_PASSWORD` | PostgreSQL password | `jobtracker` |
-| `DB_HOST` | DB hostname for API | `postgres` |
-| `DB_PORT` | DB port for API | `5432` |
-| `DB_NAME` | DB name for API | `jobtracker` |
-| `DB_USER` | DB user for API | `jobtracker` |
-| `DB_PASSWORD` | DB password for API | `jobtracker` |
-| `DB_POOL_MAX_SIZE` | Hikari max pool size | `20` |
-| `DB_POOL_MIN_IDLE` | Hikari min idle | `5` |
-| `SPRING_PROFILES_ACTIVE` | Spring profile | `prod` |
-| `JWT_SECRET` | Base64 JWT secret (min 256-bit) | sample in `.env.example` |
-| `JWT_EXPIRATION_MS` | JWT TTL in ms | `3600000` |
-| `API_DOCS_ENABLED` | Enable `/v3/api-docs` | `true` |
-| `SWAGGER_UI_ENABLED` | Enable Swagger UI | `true` |
-
-## Local Setup
-
-### Prerequisites
-
-- Java 17
-- Maven 3.9+
-- Docker Desktop (or Docker Engine + Compose v2)
-
-### Run with Docker Compose (Production Profile)
+### 1. Clone and Configure
 
 ```bash
+git clone <repo-url>
+cd job-application-tracker-api
 cp .env.example .env
+```
+
+PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+### 2. Run with Docker
+
+```bash
 docker compose up --build -d
 docker compose ps
 ```
 
-API: `http://localhost:8080`
+- API: `http://localhost:8080`
+- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
 
-### Stop Stack
+### 3. Run Tests
+
+```bash
+mvn clean test
+```
+
+### 4. Stop Services
 
 ```bash
 docker compose down
 ```
 
-### Reset DB Volume
+Reset DB volume:
 
 ```bash
 docker compose down -v
 docker compose up --build -d
 ```
 
-### Run Locally without Docker (requires local PostgreSQL)
+## Environment Variables
 
-```bash
-mvn clean test
-mvn spring-boot:run -Dspring-boot.run.profiles=prod
-```
+| Variable | Purpose | Default |
+|---|---|---|
+| `APP_PORT` | Host API port mapping | `8080` |
+| `SERVER_PORT` | Spring Boot server port | `8080` |
+| `POSTGRES_PORT` | Host PostgreSQL port mapping | `5432` |
+| `POSTGRES_DB` | PostgreSQL database name | `jobtracker` |
+| `POSTGRES_USER` | PostgreSQL username | `jobtracker` |
+| `POSTGRES_PASSWORD` | PostgreSQL password | `jobtracker` |
+| `DB_HOST` | DB host used by app container | `postgres` |
+| `DB_PORT` | DB port used by app container | `5432` |
+| `DB_NAME` | JDBC database name | `jobtracker` |
+| `DB_USER` | JDBC username | `jobtracker` |
+| `DB_PASSWORD` | JDBC password | `jobtracker` |
+| `DB_POOL_MAX_SIZE` | Hikari max connections | `20` |
+| `DB_POOL_MIN_IDLE` | Hikari min idle connections | `5` |
+| `SPRING_PROFILES_ACTIVE` | Active profile | `prod` |
+| `JWT_SECRET` | Base64 JWT signing key | sample value |
+| `JWT_EXPIRATION_MS` | JWT expiration in ms | `3600000` |
+| `API_DOCS_ENABLED` | Enable `/v3/api-docs` | `true` |
+| `SWAGGER_UI_ENABLED` | Enable Swagger UI | `true` |
 
 ## API Documentation
 
-- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
-- OpenAPI JSON: `http://localhost:8080/v3/api-docs`
+- OpenAPI: `GET /v3/api-docs`
+- Swagger: `GET /swagger-ui/index.html`
+- Reference examples: `docs/API_REFERENCE.md`
 
-## Core API Endpoints
+## Database Schema
 
-### Auth
+Flyway migration file:
+- `src/main/resources/db/migration/V1__init_schema.sql`
 
-- `POST /api/auth/register`
-- `POST /api/auth/login`
+Main tables:
+- `users`
+- `job_applications`
+- `flyway_schema_history`
 
-### Jobs
+## Quality and CI
 
-- `GET /api/jobs?page=0&size=10&status=APPLIED&sort=desc`
-- `GET /api/jobs/stats`
-- `POST /api/jobs`
-- `PUT /api/jobs/{id}`
-- `DELETE /api/jobs/{id}`
+- Unit + integration tests in `src/test/java`
+- JaCoCo reports generated under `target/site/jacoco`
+- GitHub Actions workflow: `.github/workflows/ci.yml`
 
 ## Deployment
 
-### Render
+- Docker Compose (local/prod-like): `docker-compose.yml`
+- Render, Railway, VPS instructions: `docs/DEPLOYMENT.md`
 
-1. Push repository to GitHub/GitLab.
-2. Create a PostgreSQL service in Render.
-3. Create a **Web Service** and choose Docker deployment (uses `Dockerfile`).
-4. Configure environment variables in Render:
-   - `SPRING_PROFILES_ACTIVE=prod`
-   - `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`
-   - `JWT_SECRET`, `JWT_EXPIRATION_MS`
-   - Optional: `API_DOCS_ENABLED`, `SWAGGER_UI_ENABLED`
-5. Deploy and check logs.
+## Roadmap
 
-### Railway
+Future improvements are tracked in:
+- `docs/ROADMAP.md`
 
-1. Create new project from GitHub repo.
-2. Add PostgreSQL plugin.
-3. Add API service from repo (Docker build).
-4. Configure env vars:
-   - `SPRING_PROFILES_ACTIVE=prod`
-   - `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`
-   - `JWT_SECRET`, `JWT_EXPIRATION_MS`
-5. Deploy and verify `/v3/api-docs`.
+## Contributing and Governance
 
-### VPS (Ubuntu) with Docker Compose
+- Contribution guide: `CONTRIBUTING.md`
+- Security policy: `SECURITY.md`
+- Code of conduct: `CODE_OF_CONDUCT.md`
+- Changelog: `CHANGELOG.md`
 
-```bash
-sudo apt update
-sudo apt install -y ca-certificates curl gnupg
-sudo install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  $(. /etc/os-release && echo $VERSION_CODENAME) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt update
-sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-sudo usermod -aG docker $USER
-```
+## License
 
-After re-login:
-
-```bash
-git clone <your-repo-url>
-cd job-application-tracker-api
-cp .env.example .env
-nano .env
-docker compose up --build -d
-docker compose logs -f app
-```
-
-## CI / Quality
-
-```bash
-mvn clean test
-```
-
-JaCoCo report is generated in:
-
-`target/site/jacoco/index.html`
-
-## Example Production Logs
-
-```text
-Tomcat initialized with port 8080 (http)
-HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@...
-Initialized JPA EntityManagerFactory for persistence unit 'default'
-Tomcat started on port 8080 (http) with context path '/'
-Started JobApplicationTrackerApiApplication in ... seconds
-Database connectivity check passed. SELECT 1 returned 1
-```
-
+This project is licensed under the MIT License.
+See `LICENSE`.
