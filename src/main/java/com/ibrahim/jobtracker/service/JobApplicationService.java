@@ -2,6 +2,7 @@ package com.ibrahim.jobtracker.service;
 
 import com.ibrahim.jobtracker.dto.JobApplicationRequest;
 import com.ibrahim.jobtracker.dto.JobApplicationResponse;
+import com.ibrahim.jobtracker.dto.JobApplicationStatsResponse;
 import com.ibrahim.jobtracker.entity.ApplicationStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,6 +17,8 @@ public interface JobApplicationService {
             String username,
             boolean isAdmin
     );
+
+    JobApplicationStatsResponse getStats(String username, boolean isAdmin);
 
     JobApplicationResponse update(Long id, JobApplicationRequest request, String username, boolean isAdmin);
 
