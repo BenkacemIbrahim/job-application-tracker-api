@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: job-application-tracker-api
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:jobtracker}
+    username: ${DB_USER:jobtracker}
+    password: ${DB_PASSWORD:jobtracker}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      initialization-fail-timeout: 60000
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  jackson:
+    time-zone: UTC
+
+server:
+  port: ${SERVER_PORT:8080}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:VGhpc0lzQVNlY3VyZVNlY3JldEtleUZvckpXVFRva2VuMTIzNDU2Nzg5MDEyMw==}
+    expiration-ms: ${JWT_EXPIRATION_MS:3600000}
+
+logging:
+  level:
+    root: INFO
+    org.springframework.security: INFO
