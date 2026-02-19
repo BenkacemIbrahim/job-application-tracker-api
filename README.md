@@ -17,6 +17,7 @@ Production-ready Spring Boot 3 REST API for tracking job applications with JWT a
 - Aggregation stats endpoint:
   - `GET /api/jobs/stats`
 - Global exception handling
+- Flyway database migrations for production bootstrap
 - OpenAPI/Swagger support
 - Dockerized app + PostgreSQL stack
 
@@ -26,6 +27,7 @@ Production-ready Spring Boot 3 REST API for tracking job applications with JWT a
 - Spring Boot 3.3.x
 - Spring Security (JWT)
 - Spring Data JPA / Hibernate
+- Flyway
 - PostgreSQL
 - Maven
 - Docker / Docker Compose
@@ -41,6 +43,7 @@ flowchart TD
     Service --> Mapper[Manual Mapper]
     Service --> Repository[Spring Data Repositories]
     Repository --> DB[(PostgreSQL)]
+    Flyway[Flyway Migrations] --> DB
 
     Service --> Exception[GlobalExceptionHandler]
     Controller --> Exception
@@ -50,16 +53,16 @@ flowchart TD
 
 ```text
 com.ibrahim.jobtracker
- ├── config
- ├── controller
- ├── service
- ├── service.impl
- ├── repository
- ├── dto
- ├── entity
- ├── exception
- ├── security
- └── util
+|- config
+|- controller
+|- service
+|- service.impl
+|- repository
+|- dto
+|- entity
+|- exception
+|- security
+`- util
 ```
 
 ## Environment Variables
@@ -216,3 +219,4 @@ Tomcat started on port 8080 (http) with context path '/'
 Started JobApplicationTrackerApiApplication in ... seconds
 Database connectivity check passed. SELECT 1 returned 1
 ```
+
