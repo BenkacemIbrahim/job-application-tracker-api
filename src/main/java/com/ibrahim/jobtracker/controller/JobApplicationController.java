@@ -3,6 +3,7 @@ package com.ibrahim.jobtracker.controller;
 import com.ibrahim.jobtracker.dto.JobApplicationRequest;
 import com.ibrahim.jobtracker.dto.JobApplicationResponse;
 import com.ibrahim.jobtracker.dto.JobApplicationStatsResponse;
+import com.ibrahim.jobtracker.dto.PageResponse;
 import com.ibrahim.jobtracker.entity.ApplicationStatus;
 import com.ibrahim.jobtracker.service.JobApplicationService;
 import jakarta.validation.Valid;
@@ -41,7 +42,7 @@ public class JobApplicationController {
     private final JobApplicationService service;
 
     @GetMapping
-    public ResponseEntity<Page<JobApplicationResponse>> getJobs(
+    public ResponseEntity<PageResponse<JobApplicationResponse>> getJobs(
             @RequestParam(name = "status", required = false) ApplicationStatus status,
             @RequestParam(name = "page", defaultValue = "0") @Min(0) int page,
             @RequestParam(name = "size", defaultValue = "10") @Min(1) @Max(MAX_SIZE) int size,
@@ -54,7 +55,8 @@ public class JobApplicationController {
         log.debug("GET /api/jobs by user={} admin={} page={} size={} status={} sort={}",
                 authentication.getName(), isAdmin, page, size, status, sort);
 
-        return ResponseEntity.ok(service.getJobs(status, pageRequest, authentication.getName(), isAdmin));
+        Page<JobApplicationResponse> jobPage = service.getJobs(status, pageRequest, authentication.getName(), isAdmin);
+        return ResponseEntity.ok(PageResponse.from(jobPage));
     }
 
     @GetMapping("/stats")
