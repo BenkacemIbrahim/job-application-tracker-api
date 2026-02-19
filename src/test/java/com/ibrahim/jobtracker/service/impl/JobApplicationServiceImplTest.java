@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import com.ibrahim.jobtracker.dto.JobApplicationRequest;
 import com.ibrahim.jobtracker.dto.JobApplicationResponse;
+import com.ibrahim.jobtracker.dto.JobApplicationStatsResponse;
 import com.ibrahim.jobtracker.entity.ApplicationStatus;
 import com.ibrahim.jobtracker.entity.JobApplication;
 import com.ibrahim.jobtracker.entity.Role;
@@ -134,6 +135,33 @@ class JobApplicationServiceImplTest {
         assertThat(result.getId()).isEqualTo(11L);
         verify(mapper).updateEntity(application, request);
         verify(repository).save(application);
+    }
+
+    @Test
+    void getStatsShouldReturnGlobalValuesForAdmin() {
+        JobApplicationStatsResponse stats = new JobApplicationStatsResponse(10, 3, 2, 4);
+        when(repository.getStatsForAll()).thenReturn(stats);
+
+        JobApplicationStatsResponse result = service.getStats("admin", true);
+
+        assertThat(result.getTotalApplications()).isEqualTo(10);
+        assertThat(result.getInterviews()).isEqualTo(3);
+        verify(repository).getStatsForAll();
+        verify(userRepository, never()).findByUsername(any());
+    }
+
+    @Test
+    void getStatsShouldReturnUserValuesWhenNotAdmin() {
+        User user = sampleUser(1L, "john");
+        JobApplicationStatsResponse stats = new JobApplicationStatsResponse(4, 1, 1, 1);
+        when(userRepository.findByUsername("john")).thenReturn(Optional.of(user));
+        when(repository.getStatsByUserId(1L)).thenReturn(stats);
+
+        JobApplicationStatsResponse result = service.getStats("john", false);
+
+        assertThat(result.getTotalApplications()).isEqualTo(4);
+        assertThat(result.getOffers()).isEqualTo(1);
+        verify(repository).getStatsByUserId(1L);
     }
 
     @Test
