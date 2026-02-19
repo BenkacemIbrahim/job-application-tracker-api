@@ -1,21 +1,48 @@
 services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: job-application-tracker-api:latest
+    container_name: jobtracker-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      SERVER_PORT: ${SERVER_PORT:-8080}
+      DB_HOST: ${DB_HOST:-postgres}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME:-jobtracker}
+      DB_USER: ${DB_USER:-jobtracker}
+      DB_PASSWORD: ${DB_PASSWORD:-jobtracker}
+      DB_POOL_MAX_SIZE: ${DB_POOL_MAX_SIZE:-20}
+      DB_POOL_MIN_IDLE: ${DB_POOL_MIN_IDLE:-5}
+      JWT_SECRET: ${JWT_SECRET:-VGhpc0lzQVNlY3VyZVNlY3JldEtleUZvckpXVFRva2VuMTIzNDU2Nzg5MDEyMw==}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-3600000}
+      API_DOCS_ENABLED: ${API_DOCS_ENABLED:-true}
+      SWAGGER_UI_ENABLED: ${SWAGGER_UI_ENABLED:-true}
+    ports:
+      - "${APP_PORT:-8080}:8080"
+
   postgres:
     image: postgres:16-alpine
     container_name: jobtracker-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: jobtracker
-      POSTGRES_USER: jobtracker
-      POSTGRES_PASSWORD: jobtracker
+      POSTGRES_DB: ${POSTGRES_DB:-jobtracker}
+      POSTGRES_USER: ${POSTGRES_USER:-jobtracker}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-jobtracker}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U jobtracker -d jobtracker"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-jobtracker} -d ${POSTGRES_DB:-jobtracker}"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
 
 volumes:
   postgres_data:

@@ -1,0 +1,7 @@
+.git
+.idea
+out
+target
+*.iml
+*.log
+.env
