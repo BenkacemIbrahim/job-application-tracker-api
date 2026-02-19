@@ -72,6 +72,33 @@ Query params:
 - `sort` values: `asc` or `desc` by `appliedDate`
 - `status` optional enum: `APPLIED`, `INTERVIEW`, `REJECTED`, `OFFER`
 
+Response `200`:
+
+```json
+{
+  "content": [
+    {
+      "id": 2,
+      "companyName": "Amazon",
+      "position": "Java Developer",
+      "status": "INTERVIEW",
+      "appliedDate": "2026-02-19",
+      "notes": "Phone screen scheduled",
+      "userId": 1,
+      "createdAt": "2026-02-19T18:26:45.016764Z",
+      "updatedAt": "2026-02-19T18:26:45.016773Z"
+    }
+  ],
+  "page": 0,
+  "size": 10,
+  "totalElements": 1,
+  "totalPages": 1,
+  "first": true,
+  "last": true,
+  "numberOfElements": 1
+}
+```
+
 ### Create Job
 
 - `POST /api/jobs`
@@ -140,4 +167,3 @@ Response example:
   "path": "/api/auth/login"
 }
 ```
-

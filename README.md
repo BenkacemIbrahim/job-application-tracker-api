@@ -105,7 +105,13 @@ docker compose ps
 ### 3. Run Tests
 
 ```bash
-mvn clean test
+./mvnw clean test
+```
+
+PowerShell:
+
+```powershell
+.\mvnw.cmd clean test
 ```
 
 ### 4. Stop Services
@@ -165,6 +171,7 @@ Main tables:
 - Unit + integration tests in `src/test/java`
 - JaCoCo reports generated under `target/site/jacoco`
 - GitHub Actions workflow: `.github/workflows/ci.yml`
+- Maven Wrapper included: `mvnw`, `mvnw.cmd`
 
 ## Deployment
 
