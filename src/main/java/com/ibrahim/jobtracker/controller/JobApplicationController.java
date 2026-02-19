@@ -2,11 +2,13 @@ package com.ibrahim.jobtracker.controller;
 
 import com.ibrahim.jobtracker.dto.JobApplicationRequest;
 import com.ibrahim.jobtracker.dto.JobApplicationResponse;
+import com.ibrahim.jobtracker.dto.JobApplicationStatsResponse;
 import com.ibrahim.jobtracker.entity.ApplicationStatus;
 import com.ibrahim.jobtracker.service.JobApplicationService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Slf4j
 @Validated
 @RequiredArgsConstructor
 @PreAuthorize("hasAnyRole('USER','ADMIN')")
@@ -48,8 +51,17 @@ public class JobApplicationController {
         Sort.Direction direction = "asc".equalsIgnoreCase(sort) ? Sort.Direction.ASC : Sort.Direction.DESC;
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, "appliedDate"));
         boolean isAdmin = hasRole(authentication, "ROLE_ADMIN");
+        log.debug("GET /api/jobs by user={} admin={} page={} size={} status={} sort={}",
+                authentication.getName(), isAdmin, page, size, status, sort);
 
         return ResponseEntity.ok(service.getJobs(status, pageRequest, authentication.getName(), isAdmin));
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<JobApplicationStatsResponse> getStats(Authentication authentication) {
+        boolean isAdmin = hasRole(authentication, "ROLE_ADMIN");
+        log.debug("GET /api/jobs/stats by user={} admin={}", authentication.getName(), isAdmin);
+        return ResponseEntity.ok(service.getStats(authentication.getName(), isAdmin));
     }
 
     @PostMapping
@@ -57,6 +69,7 @@ public class JobApplicationController {
             @Valid @RequestBody JobApplicationRequest request,
             Authentication authentication
     ) {
+        log.debug("POST /api/jobs by user={}", authentication.getName());
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request, authentication.getName()));
     }
 
@@ -67,12 +80,14 @@ public class JobApplicationController {
             Authentication authentication
     ) {
         boolean isAdmin = hasRole(authentication, "ROLE_ADMIN");
+        log.debug("PUT /api/jobs/{} by user={} admin={}", id, authentication.getName(), isAdmin);
         return ResponseEntity.ok(service.update(id, request, authentication.getName(), isAdmin));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id, Authentication authentication) {
         boolean isAdmin = hasRole(authentication, "ROLE_ADMIN");
+        log.debug("DELETE /api/jobs/{} by user={} admin={}", id, authentication.getName(), isAdmin);
         service.delete(id, authentication.getName(), isAdmin);
         return ResponseEntity.noContent().build();
     }

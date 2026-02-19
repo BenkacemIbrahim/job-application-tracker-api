@@ -2,6 +2,7 @@ package com.ibrahim.jobtracker.service.impl;
 
 import com.ibrahim.jobtracker.dto.JobApplicationRequest;
 import com.ibrahim.jobtracker.dto.JobApplicationResponse;
+import com.ibrahim.jobtracker.dto.JobApplicationStatsResponse;
 import com.ibrahim.jobtracker.entity.ApplicationStatus;
 import com.ibrahim.jobtracker.entity.JobApplication;
 import com.ibrahim.jobtracker.entity.User;
@@ -10,6 +11,7 @@ import com.ibrahim.jobtracker.repository.JobApplicationRepository;
 import com.ibrahim.jobtracker.repository.UserRepository;
 import com.ibrahim.jobtracker.service.JobApplicationService;
 import com.ibrahim.jobtracker.util.JobApplicationMapper;
+import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 @Transactional
 public class JobApplicationServiceImpl implements JobApplicationService {
@@ -31,7 +34,9 @@ public class JobApplicationServiceImpl implements JobApplicationService {
         User currentUser = findCurrentUser(username);
         JobApplication entity = mapper.toEntity(request);
         entity.setUser(currentUser);
-        return mapper.toResponse(repository.save(entity));
+        JobApplication saved = repository.save(entity);
+        log.info("Created job application id={} for user={}", saved.getId(), username);
+        return mapper.toResponse(saved);
     }
 
     @Override
@@ -46,6 +51,7 @@ public class JobApplicationServiceImpl implements JobApplicationService {
             Page<JobApplication> adminPage = status == null
                     ? repository.findAll(pageable)
                     : repository.findAllByStatus(status, pageable);
+            log.debug("Fetched jobs for admin with status={} page={} size={}", status, pageable.getPageNumber(), pageable.getPageSize());
             return adminPage.map(mapper::toResponse);
         }
 
@@ -53,8 +59,24 @@ public class JobApplicationServiceImpl implements JobApplicationService {
         Page<JobApplication> userPage = status == null
                 ? repository.findAllByUserId(currentUser.getId(), pageable)
                 : repository.findAllByUserIdAndStatus(currentUser.getId(), status, pageable);
+        log.debug("Fetched jobs for user={} with status={} page={} size={}", username, status, pageable.getPageNumber(), pageable.getPageSize());
 
         return userPage.map(mapper::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public JobApplicationStatsResponse getStats(String username, boolean isAdmin) {
+        if (isAdmin) {
+            JobApplicationStatsResponse stats = repository.getStatsForAll();
+            log.info("Computed global job stats for admin={}", username);
+            return stats;
+        }
+
+        User currentUser = findCurrentUser(username);
+        JobApplicationStatsResponse stats = repository.getStatsByUserId(currentUser.getId());
+        log.info("Computed job stats for user={}", username);
+        return stats;
     }
 
     @Override
@@ -66,7 +88,9 @@ public class JobApplicationServiceImpl implements JobApplicationService {
         enforceOwnership(existing, currentUser, isAdmin);
 
         mapper.updateEntity(existing, request);
-        return mapper.toResponse(repository.save(existing));
+        JobApplication saved = repository.save(existing);
+        log.info("Updated job application id={} by user={} admin={}", id, username, isAdmin);
+        return mapper.toResponse(saved);
     }
 
     @Override
@@ -78,6 +102,7 @@ public class JobApplicationServiceImpl implements JobApplicationService {
         enforceOwnership(existing, currentUser, isAdmin);
 
         repository.delete(existing);
+        log.info("Deleted job application id={} by user={} admin={}", id, username, isAdmin);
     }
 
     private User findCurrentUser(String username) {
